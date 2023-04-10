@@ -1,0 +1,110 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+import express from 'express';
+import axios from 'axios';
+import querystring from 'querystring';
+
+const app = express();
+const PORT = process.env.PORT || 3000; 
+const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+const SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI;
+
+app.listen(PORT, () => console.log(`start running on port : http://localhost:${PORT}`));
+
+app.get("/", (req, res) => {
+   res.send('Boston is running!!!!') 
+});
+
+/**
+* Generate a random string containing numbers and letters
+* @param  {number} length The length of the string
+* @return {string} The generated string
+*/
+
+function generateRandomString(length) { 
+    var text = '';
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+    for (var i = 0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
+
+
+// Connect endpoint to initiate the authorisation request to Spotify
+const stateKey = 'spotify_auth_state';
+
+app.get("/connect", (req, res) => {
+    const state = generateRandomString(16);
+    res.cookie(stateKey, state);
+
+    res.redirect('https://accounts.spotify.com/authorize?' +
+    querystring.stringify({
+      response_type: 'code',
+      client_id: SPOTIFY_CLIENT_ID,
+      redirect_uri: SPOTIFY_REDIRECT_URI,
+      state: state,
+      scope: 'user-read-private user-read-email'
+    }));
+
+});
+
+// Callback endpoint to handle the response from Spotify
+app.get("/callback", (req, res) => {
+    axios({
+        method: 'post',
+        url: 'https://accounts.spotify.com/api/token',
+        data: querystring.stringify({
+            grant_type: 'authorization_code',
+            code: req.query.code,
+            redirect_uri: SPOTIFY_REDIRECT_URI
+        }),
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Authorization: 'Basic ' + (new Buffer(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET).toString('base64'))
+        }
+    }).then((response) => {
+        if (response.status === 200) {
+            const { access_token, token_type } = response.data;
+
+            axios.get('https://api.spotify.com/v1/me', {    
+                headers: {  
+                    Authorization: `${token_type} ${access_token}`
+                }
+            }).then((response) => {
+                res.send(`<pre>${JSON.stringify(response.data, null, 2)}</pre>`);
+            }).catch((error) => {
+                res.send(error);
+            });
+        } else {
+            res.send(response);
+        }
+
+    }).catch((error) => {
+        res.send(error);
+    });        
+});
+
+// Refresh token endpoint to retrieve the user's refreshed Access Token once the current one has expired
+app.get("/refresh_token", (req, res) => { 
+    const { refresh_token } = req.query;
+    axios({
+        method: 'post',
+        url: 'https://accounts.spotify.com/api/token',
+        data: querystring.stringify({
+            grant_type: 'refresh_token',
+            refresh_token: refresh_token
+        }),
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64'))
+        }
+    }).then((response) => {
+        res.send(response.data);
+    }).catch((error) => {
+        res.send(error);
+    });
+});
