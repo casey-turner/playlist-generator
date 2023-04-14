@@ -11,6 +11,44 @@ const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI;
 
+import { Configuration, OpenAIApi } from "openai";
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
+app.use(express.json());
+
+
+app.post('/playlist', async (req, res) => {
+
+    const response = await openai.createCompletion({
+        model: "text-davinci-003",
+        prompt: "A 15 song playlist for a specific genre of music, output in JSON format. Genre: Punk. Playlist: {\"Track\": \"Blitzkrieg Bop\", \"Artist\": \"The Ramones\"}",
+        temperature: 0.8,
+        max_tokens: 2048,
+        top_p: 1,
+        frequency_penalty: 0.0,
+        presence_penalty: 0.0,
+    });
+    try {
+        return res.status(200).json({
+            success: true,  
+            data: response.data.choices[0].text
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.response
+                ? error.response.data
+                : 'Server Error'
+        });
+    }
+});
+
+
+
 app.listen(PORT, () => console.log(`start running on port : http://localhost:${PORT}`));
 
 app.get("/", (req, res) => {
