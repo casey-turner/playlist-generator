@@ -7,6 +7,7 @@ import querystring from 'querystring';
 
 const app = express();
 const PORT = process.env.PORT || 3000; 
+const URL = process.env.CLIENT_URL || 'http://localhost:5173';
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI;
@@ -49,7 +50,7 @@ app.post('/playlist', async (req, res) => {
 
 
 
-app.listen(PORT, () => console.log(`start running on port : http://localhost:${PORT}`));
+
 
 app.get("/", (req, res) => {
    res.send('Boston is running!!!!') 
@@ -106,19 +107,18 @@ app.get("/callback", (req, res) => {
         }
     }).then((response) => {
         if (response.status === 200) {
-            const { access_token, token_type } = response.data;
+            // const { access_token, token_type } = response.data;
 
-            axios.get('https://api.spotify.com/v1/me', {    
-                headers: {  
-                    Authorization: `${token_type} ${access_token}`
-                }
-            }).then((response) => {
-                res.send(`<pre>${JSON.stringify(response.data, null, 2)}</pre>`);
-            }).catch((error) => {
-                res.send(error);
+            const { access_token, token_type, refresh_token } = response.data;
+
+            const queryParams = querystring.stringify({
+                access_token,
+                refresh_token
             });
+
+            res.redirect(`${URL}/?${queryParams}`);
         } else {
-            res.send(response);
+            res.redirect(`${URL}/?${querystring.stringify({ error: 'invalid_token' })}`);
         }
 
     }).catch((error) => {
@@ -146,3 +146,6 @@ app.get("/refresh_token", (req, res) => {
         res.send(error);
     });
 });
+
+
+app.listen(PORT, () => console.log(`start running on port : http://localhost:${PORT}`));
