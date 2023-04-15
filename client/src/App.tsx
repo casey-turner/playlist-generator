@@ -1,25 +1,31 @@
-import { useEffect  } from 'react'
+import { useEffect, useState } from 'react'
+import { accessToken, logout } from './services/spotify'
 import './App.css'
 
 function App() {
-  useEffect(() => { 
-
-    const urlParams = new URLSearchParams(window.location.search)
-    const accessToken = urlParams.get('access_token')
-    const refreshToken = urlParams.get('refresh_token') 
-    if(refreshToken) {
-      fetch('/refresh_token?refresh_token=' + refreshToken)
-        .then(res => res.json())  
-        .then(data => console.log(data))
-        .catch(err => console.log(err))
-    }
-  }, [])
   
+  const [token, setToken] = useState<string | null>(null)
+
+  useEffect(() => { 
+    setToken(accessToken)
+  }, [])
+
   return (
     <div className="App">
-      <a href="http://localhost:3000/connect">Login to spotify</a>
+      {!token ? (
+        <a href="http://localhost:3000/connect">
+          Login to Spotify
+        </a>
+      ) : (
+          <>
+            <h1>Logged In!</h1>
+            <button onClick={logout}>Log Out</button>
+          </>
+
+        )}
     </div>
   )
 }
 
 export default App
+ 
