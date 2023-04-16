@@ -28,8 +28,13 @@ function App() {
         // Update the response state with the server's response
       console.log(res);
       const boston = JSON.parse(res.data.data);
-      console.log(boston);
-      setResponse(boston);
+      const playlist = boston.songs;
+      console.log(boston.songs);
+        playlist.map(function(element){
+          console.log(element.title)
+        })
+
+      setResponse(boston.songs);
     })
     .catch((err) => {
         console.error(err);
@@ -86,10 +91,10 @@ function App() {
 
                       </form>
 
-                      {response && (Object.key(response).map((key) => {
+                      {response && (response.map((key) => {
                         return (
-                          <div key={key}>
-                            { key}
+                          <div key={key.title}>
+                            {key.title} by {key.artist}
                           </div>
                         )
                       }))}

@@ -40,7 +40,7 @@ app.post('/generate', async (req, res) => {
 
    const response = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt:"Create a 3 song " + prompt + " playlist. The playlist must be returned as a JSON object without anything prepending. Example format of the JSON Object[{\"Track\": \"Track Title\", \"Artist\": \"Artist Name\"}]",
+      prompt:"Create a 2 song " + prompt + " playlist. The playlist must be returned as a JSON object in the following format { \"songs\": [ { \"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"} ] }",
       max_tokens: 300,
       temperature: 0.9,
    });
