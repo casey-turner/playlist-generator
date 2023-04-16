@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios'
 
 const LOCALSTORAGE_KEYS = {
   accessToken: 'access_token',
@@ -6,13 +6,6 @@ const LOCALSTORAGE_KEYS = {
   expireTime: 'expire_time',
   timestamp: 'timestamp',
 };
-
-interface LocalStorageValues {
-  accessToken: string | null;
-  refreshToken: string | null;
-  expireTime: string | null;
-  timestamp: string | null;
-}
 
 const LOCALSTORAGE_VALUES: LocalStorageValues = {
   accessToken: window.localStorage.getItem(LOCALSTORAGE_KEYS.accessToken),
@@ -107,8 +100,21 @@ const getSpotifyAccessToken = (): string | false => {
     return queryParams[LOCALSTORAGE_KEYS.accessToken]!;
     }
 
-  return false;
+  return false; 
 };
 
 
-export { logout, getSpotifyAccessToken as accessToken };
+export { logout, getSpotifyAccessToken };
+
+const spotifyApi = axios.create({
+    baseURL: 'https://api.spotify.com/v1',
+    headers: { 'Authorization': `Bearer ${getSpotifyAccessToken()}`, 'Content-Type': 'application/json'  },
+    // headers['Authorization']: `Bearer ${getSpotifyAccessToken()}`,
+    // headers['Content-Type']: 'application/json'
+});
+
+/** 
+* Gets the user's profile information. 
+* @returns {Promise} The user's profile information. 
+*/
+export const getUserProfile = () => spotifyApi.get('/me');

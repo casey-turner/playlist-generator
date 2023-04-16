@@ -5,49 +5,60 @@ import express from 'express';
 import axios from 'axios';
 import querystring from 'querystring';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 const app = express();
+app.use(cors());
+app.use(express.json());
 const PORT = process.env.PORT || 3000; 
 const URL = process.env.CLIENT_URL || 'http://localhost:5173';
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI;
 
-// import { Configuration, OpenAIApi } from "openai";
+import { Configuration, OpenAIApi } from "openai"
 
-// const configuration = new Configuration({
-//   apiKey: process.env.OPENAI_API_KEY,
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+// const response = await openai.createCompletion({
+//   model: "text-davinci-003",
+//   prompt:"A 15 song playlist for a specific genre of music, output in JSON format. Output example {\"Track\": \"Track Title\", \"Artist\": \"Artist Name\"}. The genre of music is post hardcore. There should  be no repeated artists. All songs should be from between 1990-1995. Provide 5 creative titles for the playlist. output these in a separate JSON object.",
+//   max_tokens: 2048,
+//   temperature: 0.5,
 // });
-// const openai = new OpenAIApi(configuration);
-
-app.use(express.json());
+// console.log(response.data.choices[0].text);
 
 
-// app.post('/playlist', async (req, res) => {
 
-//     const response = await openai.createCompletion({
-//         model: "text-davinci-003",
-//         prompt: "A 15 song playlist for a specific genre of music, output in JSON format. Genre: Punk. Playlist: {\"Track\": \"Blitzkrieg Bop\", \"Artist\": \"The Ramones\"}",
-//         temperature: 0.8,
-//         max_tokens: 2048,
-//         top_p: 1,
-//         frequency_penalty: 0.0,
-//         presence_penalty: 0.0,
-//     });
-//     try {
-//         return res.status(200).json({
-//             success: true,  
-//             data: response.data.choices[0].text
-//         });
-//     } catch (error) {
-//         res.status(500).json({
-//             success: false,
-//             error: error.response
-//                 ? error.response.data
-//                 : 'Server Error'
-//         });
-//     }
-// });
+
+
+app.post('/generate', async (req, res) => {
+
+  const prompt = req.body.prompt;
+
+   const response = await openai.createCompletion({
+      model: "text-davinci-003",
+      prompt:"Create a 3 song " + prompt + " playlist. The playlist must be returned as a JSON object without anything prepending. Example format of the JSON Object[{\"Track\": \"Track Title\", \"Artist\": \"Artist Name\"}]",
+      max_tokens: 300,
+      temperature: 0.9,
+   });
+    try {
+        return res.status(200).json({
+            success: true,  
+            data: response.data.choices[0].text
+        });
+      console.log(response.data.choices[0].text);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.response
+                ? error.response.data
+                : 'Server Error'
+        });
+    }
+});
 
 
 
