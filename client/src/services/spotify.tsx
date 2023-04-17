@@ -104,7 +104,7 @@ const getSpotifyAccessToken = (): string | false => {
 };
 
 
-export { logout, getSpotifyAccessToken };
+export { logout, getSpotifyAccessToken, spotifyApi };
 
 const spotifyApi = axios.create({
     baseURL: 'https://api.spotify.com/v1',

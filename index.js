@@ -40,7 +40,7 @@ app.post('/generate', async (req, res) => {
 
    const response = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt:"Create a 2 song " + prompt + " playlist. The playlist must be returned as a JSON object in the following format { \"songs\": [ { \"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"} ] }",
+      prompt:"Create a 2 song " + prompt + " playlist. The playlist must be returned as a JSON object in the following format { \"songs\": [ { \"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"} ] }" ,
       max_tokens: 300,
       temperature: 0.9,
    });
@@ -98,7 +98,7 @@ app.get("/connect", (req, res) => {
       client_id: SPOTIFY_CLIENT_ID,
       redirect_uri: SPOTIFY_REDIRECT_URI,
       state: state,
-      scope: 'user-read-private user-read-email'
+      scope: 'user-read-private user-read-email playlist-modify-public playlist-modify-private'
     }));
 
 });

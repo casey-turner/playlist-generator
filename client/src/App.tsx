@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, } from 'react-router-dom'
 import axios from 'axios'
 import { nodeApi } from './services/axiosConfig'
-import { getSpotifyAccessToken, logout, getUserProfile } from './services/spotify'
+import { getSpotifyAccessToken, logout, getUserProfile, spotifyApi } from './services/spotify'
 import './App.css'
 import GeneratePlaylist from './pages/GeneratePlaylist'
 
@@ -41,6 +41,52 @@ function App() {
     });
   };
 
+  const createPlaylist = () => {
+    spotifyApi.post(`/users/${profile.id}/playlists`, {
+    name: 'My AI Generated Playlist'
+    }).then((res) => {
+      // if response status is 201, playlist created
+      if (res.status === 201) {
+        // for each song in the generate playlist response get the track uri
+        let playlistSongIds = new Array();
+        response.map((element) => { 
+          console.log
+          let song = element.title.replace(/\s+/g, '+');
+          let artist = element.artist.replace(/\s+/g, '+');
+          spotifyApi.get(`/search?q=track:${song}+artist:${artist}&type=track&offset=0&limit=1`)
+            .then((res) => {
+              playlistSongIds.push(res.data.tracks.items[0].uri);
+              console.log(res.data.tracks.items[0].uri)
+            }).then(() => {
+              console.log('playlist', playlistSongIds);
+              console.log('length', playlistSongIds.length);
+              // if array of track uris is not empty, add tracks to playlist
+              if (playlistSongIds.length > 0) { 
+                console.log('here')
+                spotifyApi.post(`/playlists/${res.data.id}/tracks`, {
+                  uris: playlistSongIds
+                }).then((res) => {
+                  console.log(res)
+                }).catch((err) => {
+                  console.error(err)
+                })
+              }
+            })
+            .catch((err) => {
+              console.error(err)
+            });
+          
+            
+        })
+
+
+
+      }
+      console.log(res)
+    }).catch((err) => {
+      console.error(err)
+    })
+  }
 
   useEffect(() => { 
     setToken(getSpotifyAccessToken)
@@ -97,14 +143,14 @@ function App() {
                             {key.title} by {key.artist}
                           </div>
                         )
-                      }))}
-                    
-        
+                      }))}                   
 
 
 
                   </div>       
                   )}
+                // button on onClick to hit spotifyAPI
+                <button onClick={createPlaylist}>Generate Playlist</button>
               </>
             } />
           </Routes>
