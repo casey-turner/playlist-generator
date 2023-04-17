@@ -50,19 +50,24 @@ function App() {
         // for each song in the generate playlist response get the track uri
         let playlistSongIds = new Array();
         response.map((element) => { 
-          console.log
+          // replace spaces with + for spotify api
           let song = element.title.replace(/\s+/g, '+');
           let artist = element.artist.replace(/\s+/g, '+');
+
+          // get track uri from spotify api
           spotifyApi.get(`/search?q=track:${song}+artist:${artist}&type=track&offset=0&limit=1`)
             .then((res) => {
+              // add track uri to array
               playlistSongIds.push(res.data.tracks.items[0].uri);
               console.log(res.data.tracks.items[0].uri)
             }).then(() => {
+
               console.log('playlist', playlistSongIds);
               console.log('length', playlistSongIds.length);
               // if array of track uris is not empty, add tracks to playlist
               if (playlistSongIds.length > 0) { 
-                console.log('here')
+
+                // add tracks to newly created spotify playlist
                 spotifyApi.post(`/playlists/${res.data.id}/tracks`, {
                   uris: playlistSongIds
                 }).then((res) => {
@@ -74,13 +79,8 @@ function App() {
             })
             .catch((err) => {
               console.error(err)
-            });
-          
-            
+            });        
         })
-
-
-
       }
       console.log(res)
     }).catch((err) => {
